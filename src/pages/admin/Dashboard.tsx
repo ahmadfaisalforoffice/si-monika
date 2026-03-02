@@ -5,10 +5,10 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
 export default function AdminDashboard() {
-  const { activities, users } = useStore();
+  const { activities, profiles } = useStore();
 
   const stats = {
-    users: users.length,
+    users: profiles.length,
     total: activities.length,
     diajukan: activities.filter(a => a.status === 'Diajukan').length,
     proses: activities.filter(a => a.status === 'Dalam Proses Administrasi').length,
