@@ -11,10 +11,14 @@ export default function SemuaKegiatan() {
   const [selectedActivity, setSelectedActivity] = useState<any>(null);
   const [activityToDelete, setActivityToDelete] = useState<any>(null);
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (activityToDelete) {
-      deleteActivity(activityToDelete.id);
-      setActivityToDelete(null);
+      try {
+        await deleteActivity(activityToDelete.id);
+        setActivityToDelete(null);
+      } catch (error) {
+        alert('Gagal menghapus kegiatan. Silakan coba lagi.');
+      }
     }
   };
 
