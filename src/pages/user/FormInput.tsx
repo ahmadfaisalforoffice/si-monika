@@ -43,7 +43,7 @@ export default function FormInput() {
     try {
       await addActivity({
         ...formData,
-        createdBy: currentUser.username,
+        createdBy: currentUser.id,
       });
       
       alert('Kegiatan berhasil diajukan!');
