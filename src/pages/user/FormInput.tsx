@@ -36,17 +36,21 @@ export default function FormInput() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
     
-    addActivity({
-      ...formData,
-      createdBy: currentUser.username,
-    });
-    
-    alert('Kegiatan berhasil diajukan!');
-    navigate('/user/monitoring');
+    try {
+      await addActivity({
+        ...formData,
+        createdBy: currentUser.username,
+      });
+      
+      alert('Kegiatan berhasil diajukan!');
+      navigate('/user/monitoring');
+    } catch (error) {
+      alert('Gagal mengajukan kegiatan. Silakan coba lagi.');
+    }
   };
 
   const handleReset = () => {
