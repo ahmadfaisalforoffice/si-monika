@@ -54,11 +54,12 @@ interface StoreState {
   fetchProfiles: () => Promise<void>;
   setActivities: (activities: Activity[]) => void;
   fetchActivities: () => Promise<void>;
+  fetchNotifications: () => Promise<void>;
   addActivity: (activity: Omit<Activity, 'id' | 'status' | 'dokumenChecklist' | 'createdAt'>) => Promise<void>;
   updateActivityStatus: (id: string, status: ActivityStatus, checklist: Record<string, boolean>) => Promise<void>;
   deleteActivity: (id: string) => Promise<void>;
-  addNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => void;
-  markNotificationAsRead: (id: string) => void;
+  addNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => Promise<void>;
+  markNotificationAsRead: (id: string) => Promise<void>;
 }
 
 const mapChecklistToDb = (checklist: Record<string, boolean>) => ({
@@ -222,6 +223,7 @@ export const useStore = create<StoreState>()(
             });
             // Fetch initial data
             get().fetchActivities();
+            get().fetchNotifications();
             if (profile.role === 'admin') {
               get().fetchProfiles();
             }
@@ -265,6 +267,34 @@ export const useStore = create<StoreState>()(
           console.error('Error fetching activities:', error);
         }
       },
+      fetchNotifications: async () => {
+        const currentUser = get().currentUser;
+        if (!currentUser) return;
+
+        try {
+          const { data, error } = await supabase
+            .from('notifications')
+            .select('*')
+            .or(`user_id.eq.${currentUser.id},user_id.eq.${currentUser.username}`)
+            .order('created_at', { ascending: false });
+
+          if (error) throw error;
+          if (data) {
+            set({
+              notifications: data.map((n: any) => ({
+                id: n.id,
+                userId: n.user_id,
+                message: n.message,
+                isRead: n.is_read,
+                createdAt: n.created_at,
+                activityId: n.activity_id,
+              })),
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching notifications:', error);
+        }
+      },
       addActivity: async (activityData) => {
         const currentUser = get().currentUser;
         if (!currentUser) throw new Error('User not logged in');
@@ -297,7 +327,7 @@ export const useStore = create<StoreState>()(
           }));
           
           // Notify PIC (Hardcoded ID for PIC if needed, or broadcast)
-          get().addNotification({
+          await get().addNotification({
             userId: 'pic-id', // This should ideally be dynamic or handled by server
             message: `Kegiatan baru diajukan: ${newActivity.judulKegiatan} oleh ${newActivity.subBagian}`,
             activityId: newActivity.id,
@@ -349,23 +379,57 @@ export const useStore = create<StoreState>()(
           throw error;
         }
       },
-      addNotification: (notifData) => {
+      addNotification: async (notifData) => {
+        const id = crypto.randomUUID();
+        const createdAt = new Date().toISOString();
+        const isRead = false;
+
         const newNotif: Notification = {
           ...notifData,
-          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-          isRead: false,
-          createdAt: new Date().toISOString(),
+          id,
+          isRead,
+          createdAt,
         };
-        set((state) => ({
-          notifications: [newNotif, ...state.notifications],
-        }));
+
+        try {
+          const { error } = await supabase.from('notifications').insert([
+            {
+              id,
+              user_id: notifData.userId,
+              message: notifData.message,
+              is_read: isRead,
+              created_at: createdAt,
+              activity_id: notifData.activityId,
+            },
+          ]);
+
+          if (error) throw error;
+
+          set((state) => ({
+            notifications: [newNotif, ...state.notifications],
+          }));
+        } catch (error) {
+          console.error('Error adding notification:', error);
+        }
       },
-      markNotificationAsRead: (id) =>
-        set((state) => ({
-          notifications: state.notifications.map((n) =>
-            n.id === id ? { ...n, isRead: true } : n
-          ),
-        })),
+      markNotificationAsRead: async (id) => {
+        try {
+          const { error } = await supabase
+            .from('notifications')
+            .update({ is_read: true })
+            .eq('id', id);
+
+          if (error) throw error;
+
+          set((state) => ({
+            notifications: state.notifications.map((n) =>
+              n.id === id ? { ...n, isRead: true } : n
+            ),
+          }));
+        } catch (error) {
+          console.error('Error marking notification as read:', error);
+        }
+      },
     }),
     {
       name: 'simonika-storage-v2',
