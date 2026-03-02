@@ -146,14 +146,21 @@ export default function ChecklistComplete() {
                 Status Dokumen
               </h4>
               <ul className="space-y-2.5">
-                {Object.entries(selectedActivity.dokumenChecklist || {}).map(([docName, isChecked]) => (
-                  <li key={docName} className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 bg-white shadow-sm">
-                    <span className="text-sm font-medium text-slate-700">{docName}</span>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-100 text-emerald-800">
-                      Lengkap
-                    </span>
-                  </li>
-                ))}
+                {Object.entries(selectedActivity.dokumenChecklist || {})
+                  .filter(([docName]) => {
+                    if (selectedActivity.tempatKegiatan === 'Dalam Kantor') {
+                      return docName !== 'Surat Tugas Sekretariat' && docName !== 'Surat Tugas KPU';
+                    }
+                    return true;
+                  })
+                  .map(([docName, isChecked]) => (
+                    <li key={docName} className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 bg-white shadow-sm">
+                      <span className="text-sm font-medium text-slate-700">{docName}</span>
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-100 text-emerald-800">
+                        Lengkap
+                      </span>
+                    </li>
+                  ))}
               </ul>
             </div>
 
