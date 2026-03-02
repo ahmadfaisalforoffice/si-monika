@@ -82,19 +82,26 @@ const mapChecklistToDb = (checklist: Record<string, boolean>) => ({
   chk_surat_tugas_kpu: checklist['Surat Tugas KPU'] || false,
 });
 
-const mapDbToChecklist = (item: any) => ({
-  'Berita Acara (BA) Pleno': item.chk_berita_acara_pleno,
-  'Nota Dinas': item.chk_nota_dinas,
-  'Kerangka Acuan Kerja (KAK) / TOR': item.chk_kak_tor,
-  'Laporan Kegiatan': item.chk_laporan_kegiatan,
-  'Undangan Eksternal': item.chk_undangan_eksternal,
-  'Undangan Internal': item.chk_undangan_internal,
-  'Daftar Hadir Eksternal': item.chk_daftar_hadir_eksternal,
-  'Daftar Hadir Internal': item.chk_daftar_hadir_internal,
-  'Foto/Dokumentasi Kegiatan': item.chk_foto_dokumentasi,
-  'Surat Tugas Sekretariat': item.chk_surat_tugas_sekretariat,
-  'Surat Tugas KPU': item.chk_surat_tugas_kpu,
-});
+const mapDbToChecklist = (item: any) => {
+  const checklist: Record<string, boolean> = {
+    'Berita Acara (BA) Pleno': item.chk_berita_acara_pleno,
+    'Nota Dinas': item.chk_nota_dinas,
+    'Kerangka Acuan Kerja (KAK) / TOR': item.chk_kak_tor,
+    'Laporan Kegiatan': item.chk_laporan_kegiatan,
+    'Undangan Eksternal': item.chk_undangan_eksternal,
+    'Undangan Internal': item.chk_undangan_internal,
+    'Daftar Hadir Eksternal': item.chk_daftar_hadir_eksternal,
+    'Daftar Hadir Internal': item.chk_daftar_hadir_internal,
+    'Foto/Dokumentasi Kegiatan': item.chk_foto_dokumentasi,
+  };
+
+  if (item.tempat_kegiatan === 'Luar Kantor') {
+    checklist['Surat Tugas Sekretariat'] = item.chk_surat_tugas_sekretariat;
+    checklist['Surat Tugas KPU'] = item.chk_surat_tugas_kpu;
+  }
+
+  return checklist;
+};
 
 const mapDbToActivity = (item: any): Activity => ({
   id: item.id,
