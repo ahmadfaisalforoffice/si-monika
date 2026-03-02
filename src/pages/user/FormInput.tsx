@@ -23,6 +23,12 @@ export default function FormInput() {
   });
 
   useEffect(() => {
+    if (currentUser?.nama_lengkap) {
+      setFormData(prev => ({ ...prev, subBagian: currentUser.nama_lengkap }));
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
     if (formData.tanggalMulai && formData.tanggalSelesai) {
       const start = parseISO(formData.tanggalMulai);
       const end = parseISO(formData.tanggalSelesai);
@@ -84,19 +90,13 @@ export default function FormInput() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Sub Bagian</label>
-                <select
+                <input
+                  type="text"
                   name="subBagian"
-                  required
+                  readOnly
                   value={formData.subBagian}
-                  onChange={handleChange}
-                  className="block w-full border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm py-2.5 px-3 border bg-slate-50"
-                  disabled
-                >
-                  <option value="Sub Bagian Perencanaan, Data dan Informasi">Sub Bagian Perencanaan, Data dan Informasi</option>
-                  <option value="Sub Bagian Keuangan, Umum, dan Logistik">Sub Bagian Keuangan, Umum, dan Logistik</option>
-                  <option value="Sub Bagian Teknis Penyelenggaraan Pemilu, dan Hukum">Sub Bagian Teknis Penyelenggaraan Pemilu, dan Hukum</option>
-                  <option value="Sub Bagian SDM dan Partisipasi Hubungan Masyarakat">Sub Bagian SDM dan Partisipasi Hubungan Masyarakat</option>
-                </select>
+                  className="block w-full border-slate-300 rounded-lg shadow-sm bg-slate-50 sm:text-sm py-2.5 px-3 border text-slate-600 font-medium"
+                />
               </div>
 
               <div>
