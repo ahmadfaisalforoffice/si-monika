@@ -25,29 +25,34 @@ export default function ChecklistPending() {
     }));
   };
 
-  const handleUpdateStatus = (isComplete: boolean) => {
+  const handleUpdateStatus = async (isComplete: boolean) => {
     if (!selectedActivity) return;
 
     const newStatus = isComplete ? 'Dokumen Lengkap' : 'Dokumen Belum Lengkap';
-    updateActivityStatus(selectedActivity.id, newStatus, checklist);
+    
+    try {
+      await updateActivityStatus(selectedActivity.id, newStatus, checklist);
 
-    // Generate message for user
-    const incompleteDocs = Object.entries(checklist)
-      .filter(([_, isChecked]) => !isChecked)
-      .map(([name]) => name);
+      // Generate message for user
+      const incompleteDocs = Object.entries(checklist)
+        .filter(([_, isChecked]) => !isChecked)
+        .map(([name]) => name);
 
-    let message = `Status kegiatan "${selectedActivity.judulKegiatan}" diperbarui menjadi ${newStatus}.`;
-    if (!isComplete && incompleteDocs.length > 0) {
-      message += ` Dokumen yang belum lengkap: ${incompleteDocs.join(', ')}.`;
+      let message = `Status kegiatan "${selectedActivity.judulKegiatan}" diperbarui menjadi ${newStatus}.`;
+      if (!isComplete && incompleteDocs.length > 0) {
+        message += ` Dokumen yang belum lengkap: ${incompleteDocs.join(', ')}.`;
+      }
+
+      addNotification({
+        userId: selectedActivity.createdBy,
+        message,
+        activityId: selectedActivity.id,
+      });
+
+      setSelectedActivity(null);
+    } catch (error) {
+      alert('Gagal memperbarui status. Silakan coba lagi.');
     }
-
-    addNotification({
-      userId: selectedActivity.createdBy,
-      message,
-      activityId: selectedActivity.id,
-    });
-
-    setSelectedActivity(null);
   };
 
   return (
