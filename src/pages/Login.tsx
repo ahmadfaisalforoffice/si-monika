@@ -19,7 +19,9 @@ export default function Login() {
     setError('');
     
     try {
-      await login(email, password);
+      // Jika input tidak mengandung '@', anggap sebagai username dan tambahkan domain default
+      const loginEmail = email.includes('@') ? email : `${email}@simonika.com`;
+      await login(loginEmail, password);
       // The store update will trigger a re-render, but we need to navigate
       // We'll use a useEffect or check the result
     } catch (err: any) {
@@ -128,13 +130,13 @@ export default function Login() {
                   <input
                     id="email"
                     name="email"
-                    type="email"
+                    type="text"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}
                     className="block w-full pl-11 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all sm:text-sm disabled:opacity-50"
-                    placeholder="Email"
+                    placeholder="Email atau Username"
                   />
                 </div>
               </motion.div>
