@@ -40,8 +40,8 @@ export default function Layout() {
   const userNotifications = notifications.filter(n => n.userId === currentUser.id || n.userId === currentUser.username);
   const unreadCount = userNotifications.filter(n => !n.isRead).length;
 
-  const handleNotificationClick = (notif: any) => {
-    markNotificationAsRead(notif.id);
+  const handleNotificationClick = async (notif: any) => {
+    await markNotificationAsRead(notif.id);
     setShowNotifications(false);
     if (currentUser.role === 'pic') {
       navigate('/pic/checklist-pending');
