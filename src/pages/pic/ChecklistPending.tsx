@@ -15,7 +15,15 @@ export default function ChecklistPending() {
 
   const handleOpenChecklist = (activity: any) => {
     setSelectedActivity(activity);
-    setChecklist(activity.dokumenChecklist ? { ...activity.dokumenChecklist } : {});
+    const initialChecklist = activity.dokumenChecklist ? { ...activity.dokumenChecklist } : {};
+    
+    // Filter out Surat Tugas if Dalam Kantor
+    if (activity.tempatKegiatan === 'Dalam Kantor') {
+      delete initialChecklist['Surat Tugas Sekretariat'];
+      delete initialChecklist['Surat Tugas KPU'];
+    }
+    
+    setChecklist(initialChecklist);
   };
 
   const handleCheckboxChange = (docName: string) => {
