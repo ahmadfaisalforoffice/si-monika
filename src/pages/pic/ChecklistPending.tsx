@@ -51,7 +51,7 @@ export default function ChecklistPending() {
         message += ` Dokumen yang belum lengkap: ${incompleteDocs.join(', ')}.`;
       }
 
-      addNotification({
+      await addNotification({
         userId: selectedActivity.createdBy,
         message,
         activityId: selectedActivity.id,
