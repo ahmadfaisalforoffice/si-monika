@@ -6,10 +6,10 @@ export type Role = 'admin' | 'user' | 'pic';
 
 export type User = {
   id: string;
-  username: string;
-  password?: string;
+  email: string;
   role: Role;
   nama_lengkap: string;
+  username?: string;
 };
 
 export type ActivityStatus = 'Diajukan' | 'Dalam Proses Administrasi' | 'Dokumen Belum Lengkap' | 'Dokumen Lengkap' | 'Administrasi Selesai';
@@ -43,13 +43,15 @@ export type Notification = {
 };
 
 interface StoreState {
-  users: User[];
   currentUser: User | null;
+  profiles: User[];
   activities: Activity[];
   notifications: Notification[];
-  login: (user: User) => void;
-  logout: () => void;
-  updateUserPassword: (username: string, newPassword: string) => void;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkSession: () => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
+  fetchProfiles: () => Promise<void>;
   setActivities: (activities: Activity[]) => void;
   fetchActivities: () => Promise<void>;
   addActivity: (activity: Omit<Activity, 'id' | 'status' | 'dokumenChecklist' | 'createdAt'>) => Promise<void>;
@@ -58,15 +60,6 @@ interface StoreState {
   addNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => void;
   markNotificationAsRead: (id: string) => void;
 }
-
-const initialUsers: User[] = [
-  { id: '00000000-0000-0000-0000-000000000001', username: 'admin', password: 'adminadminan', role: 'admin', nama_lengkap: 'Administrator' },
-  { id: '00000000-0000-0000-0000-000000000002', username: 'pic', password: 'picuhuy', role: 'pic', nama_lengkap: 'PIC Administrasi' },
-  { id: '00000000-0000-0000-0000-000000000003', username: 'subbagrendatin', password: 'rendatin', role: 'user', nama_lengkap: 'Sub Bagian Perencanaan, Data dan Informasi' },
-  { id: '00000000-0000-0000-0000-000000000004', username: 'subbagkul', password: 'keuanganumumlogistik', role: 'user', nama_lengkap: 'Sub Bagian Keuangan, Umum, dan Logistik' },
-  { id: '00000000-0000-0000-0000-000000000005', username: 'subbagsdmparmas', password: 'sdmparmas', role: 'user', nama_lengkap: 'Sub Bagian SDM dan Partisipasi Hubungan Masyarakat' },
-  { id: '00000000-0000-0000-0000-000000000006', username: 'subbagtekhum', password: 'teknishukum', role: 'user', nama_lengkap: 'Sub Bagian Teknis Penyelenggaraan Pemilu, dan Hukum' }
-];
 
 const mapChecklistToDb = (checklist: Record<string, boolean>) => ({
   chk_berita_acara_pleno: checklist['Berita Acara (BA) Pleno'] || false,
@@ -166,17 +159,95 @@ const getInitialChecklist = (tempat: 'Dalam Kantor' | 'Luar Kantor') => {
 export const useStore = create<StoreState>()(
   persist(
     (set, get) => ({
-      users: initialUsers,
       currentUser: null,
+      profiles: [],
       activities: [],
       notifications: [],
-      login: (user) => set({ currentUser: user }),
-      logout: () => set({ currentUser: null }),
-      updateUserPassword: (username, newPassword) =>
-        set((state) => ({
-          users: state.users.map((u) => (u.username === username ? { ...u, password: newPassword } : u)),
-          currentUser: state.currentUser?.username === username ? { ...state.currentUser, password: newPassword } : state.currentUser,
-        })),
+      login: async (email, password) => {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
+
+          if (profile) {
+            set({
+              currentUser: {
+                id: data.user.id,
+                email: data.user.email!,
+                role: profile.role as Role,
+                nama_lengkap: profile.nama_lengkap,
+                username: profile.username,
+              },
+            });
+          }
+        }
+      },
+      logout: async () => {
+        await supabase.auth.signOut();
+        set({ currentUser: null, activities: [], notifications: [] });
+      },
+      updatePassword: async (newPassword) => {
+        const { error } = await supabase.auth.updateUser({
+          password: newPassword
+        });
+        if (error) throw error;
+      },
+      checkSession: async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profile) {
+            set({
+              currentUser: {
+                id: session.user.id,
+                email: session.user.email!,
+                role: profile.role as Role,
+                nama_lengkap: profile.nama_lengkap,
+                username: profile.username,
+              },
+            });
+            // Fetch initial data
+            get().fetchActivities();
+            if (profile.role === 'admin') {
+              get().fetchProfiles();
+            }
+          }
+        }
+      },
+      fetchProfiles: async () => {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*');
+          
+          if (error) throw error;
+          if (data) {
+            set({ profiles: data.map(p => ({
+              id: p.id,
+              email: '', // Email is not in profiles table usually for privacy
+              role: p.role as Role,
+              nama_lengkap: p.nama_lengkap,
+              username: p.username
+            })) });
+          }
+        } catch (error) {
+          console.error('Error fetching profiles:', error);
+        }
+      },
       setActivities: (activities) => set({ activities }),
       fetchActivities: async () => {
         try {
@@ -195,19 +266,13 @@ export const useStore = create<StoreState>()(
         }
       },
       addActivity: async (activityData) => {
+        const currentUser = get().currentUser;
+        if (!currentUser) throw new Error('User not logged in');
+
         const id = crypto.randomUUID();
         const createdAt = new Date().toISOString();
         const status = 'Diajukan';
         const dokumenChecklist = getInitialChecklist(activityData.tempatKegiatan);
-
-        // Find the user's UUID if createdBy is a username or ID
-        const user = get().users.find(u => u.username === activityData.createdBy || u.id === activityData.createdBy);
-        const createdByUuid = user?.id || activityData.createdBy;
-
-        // Final check: if it's still not a UUID (doesn't have hyphens), use a default or throw
-        if (typeof createdByUuid === 'string' && !createdByUuid.includes('-') && createdByUuid !== 'pic' && createdByUuid !== 'admin') {
-           console.warn('createdBy is not a UUID:', createdByUuid);
-        }
 
         const newActivity: Activity = {
           ...activityData,
@@ -215,7 +280,7 @@ export const useStore = create<StoreState>()(
           status,
           dokumenChecklist,
           createdAt,
-          createdBy: createdByUuid,
+          createdBy: currentUser.id,
         };
         
         const dbActivity = mapActivityToDb(newActivity);
@@ -231,9 +296,9 @@ export const useStore = create<StoreState>()(
             activities: [newActivity, ...state.activities],
           }));
           
-          // Notify PIC
+          // Notify PIC (Hardcoded ID for PIC if needed, or broadcast)
           get().addNotification({
-            userId: '00000000-0000-0000-0000-000000000002',
+            userId: 'pic-id', // This should ideally be dynamic or handled by server
             message: `Kegiatan baru diajukan: ${newActivity.judulKegiatan} oleh ${newActivity.subBagian}`,
             activityId: newActivity.id,
           });
