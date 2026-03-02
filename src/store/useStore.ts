@@ -109,29 +109,49 @@ export const useStore = create<StoreState>()(
           const { data, error } = await supabase
             .from('activities')
             .select('*')
-            .order('createdAt', { ascending: false });
+            .order('created_at', { ascending: false });
             
           if (error) throw error;
           if (data) {
-            set({ activities: data as Activity[] });
+            const mappedData = data.map((item: any) => {
+              const { created_at, ...rest } = item;
+              return {
+                ...rest,
+                createdAt: created_at || rest.createdAt,
+              };
+            });
+            set({ activities: mappedData as Activity[] });
           }
         } catch (error) {
           console.error('Error fetching activities:', error);
         }
       },
       addActivity: async (activityData) => {
+        const id = Date.now().toString();
+        const createdAt = new Date().toISOString();
+        const status = 'Diajukan';
+        const dokumenChecklist = getInitialChecklist(activityData.tempatKegiatan);
+
         const newActivity: Activity = {
           ...activityData,
-          id: Date.now().toString(),
-          status: 'Diajukan',
-          dokumenChecklist: getInitialChecklist(activityData.tempatKegiatan),
-          createdAt: new Date().toISOString(),
+          id,
+          status,
+          dokumenChecklist,
+          createdAt,
+        };
+        
+        const dbActivity = {
+          ...activityData,
+          id,
+          status,
+          dokumenChecklist,
+          created_at: createdAt,
         };
         
         try {
           const { error } = await supabase
             .from('activities')
-            .insert([newActivity]);
+            .insert([dbActivity]);
             
           if (error) throw error;
           
