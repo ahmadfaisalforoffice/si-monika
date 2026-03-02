@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
 export default function Layout() {
-  const { currentUser, logout, notifications, markNotificationAsRead } = useStore();
+  const { currentUser, logout, notifications, markNotificationAsRead, fetchActivities } = useStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -18,6 +18,12 @@ export default function Layout() {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchActivities();
+    }
+  }, [currentUser, fetchActivities]);
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
