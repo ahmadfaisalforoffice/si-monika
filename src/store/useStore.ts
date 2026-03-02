@@ -114,10 +114,11 @@ export const useStore = create<StoreState>()(
           if (error) throw error;
           if (data) {
             const mappedData = data.map((item: any) => {
-              const { created_at, ...rest } = item;
+              const { created_at, created_by, ...rest } = item;
               return {
                 ...rest,
                 createdAt: created_at || rest.createdAt,
+                createdBy: created_by || rest.createdBy,
               };
             });
             set({ activities: mappedData as Activity[] });
@@ -140,12 +141,15 @@ export const useStore = create<StoreState>()(
           createdAt,
         };
         
+        const { createdBy, ...restData } = activityData;
+        
         const dbActivity = {
-          ...activityData,
+          ...restData,
           id,
           status,
           dokumenChecklist,
           created_at: createdAt,
+          created_by: createdBy,
         };
         
         try {
