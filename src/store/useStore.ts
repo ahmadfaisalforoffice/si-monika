@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { supabase } from '../lib/supabase';
 
 export type Role = 'admin' | 'user' | 'pic';
 
@@ -48,9 +49,11 @@ interface StoreState {
   login: (user: User) => void;
   logout: () => void;
   updateUserPassword: (username: string, newPassword: string) => void;
-  addActivity: (activity: Omit<Activity, 'id' | 'status' | 'dokumenChecklist' | 'createdAt'>) => void;
-  updateActivityStatus: (id: string, status: ActivityStatus, checklist: Record<string, boolean>) => void;
-  deleteActivity: (id: string) => void;
+  setActivities: (activities: Activity[]) => void;
+  fetchActivities: () => Promise<void>;
+  addActivity: (activity: Omit<Activity, 'id' | 'status' | 'dokumenChecklist' | 'createdAt'>) => Promise<void>;
+  updateActivityStatus: (id: string, status: ActivityStatus, checklist: Record<string, boolean>) => Promise<void>;
+  deleteActivity: (id: string) => Promise<void>;
   addNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => void;
   markNotificationAsRead: (id: string) => void;
 }
@@ -100,7 +103,23 @@ export const useStore = create<StoreState>()(
           users: state.users.map((u) => (u.username === username ? { ...u, password: newPassword } : u)),
           currentUser: state.currentUser?.username === username ? { ...state.currentUser, password: newPassword } : state.currentUser,
         })),
-      addActivity: (activityData) => {
+      setActivities: (activities) => set({ activities }),
+      fetchActivities: async () => {
+        try {
+          const { data, error } = await supabase
+            .from('activities')
+            .select('*')
+            .order('createdAt', { ascending: false });
+            
+          if (error) throw error;
+          if (data) {
+            set({ activities: data as Activity[] });
+          }
+        } catch (error) {
+          console.error('Error fetching activities:', error);
+        }
+      },
+      addActivity: async (activityData) => {
         const newActivity: Activity = {
           ...activityData,
           id: Date.now().toString(),
@@ -108,36 +127,70 @@ export const useStore = create<StoreState>()(
           dokumenChecklist: getInitialChecklist(activityData.tempatKegiatan),
           createdAt: new Date().toISOString(),
         };
-        set((state) => ({
-          activities: [newActivity, ...state.activities],
-        }));
         
-        // Notify PIC
-        get().addNotification({
-          userId: 'pic',
-          message: `Kegiatan baru diajukan: ${newActivity.judulKegiatan} oleh ${newActivity.subBagian}`,
-          activityId: newActivity.id,
-        });
+        try {
+          const { error } = await supabase
+            .from('activities')
+            .insert([newActivity]);
+            
+          if (error) throw error;
+          
+          set((state) => ({
+            activities: [newActivity, ...state.activities],
+          }));
+          
+          // Notify PIC
+          get().addNotification({
+            userId: 'pic',
+            message: `Kegiatan baru diajukan: ${newActivity.judulKegiatan} oleh ${newActivity.subBagian}`,
+            activityId: newActivity.id,
+          });
+        } catch (error) {
+          console.error('Error adding activity:', error);
+          throw error;
+        }
       },
-      updateActivityStatus: (id, status, checklist) => {
-        set((state) => {
-          const activity = state.activities.find(a => a.id === id);
-          if (!activity) return state;
+      updateActivityStatus: async (id, status, checklist) => {
+        try {
+          const { error } = await supabase
+            .from('activities')
+            .update({ status, dokumenChecklist: checklist })
+            .eq('id', id);
+            
+          if (error) throw error;
+          
+          set((state) => {
+            const activity = state.activities.find(a => a.id === id);
+            if (!activity) return state;
 
-          const updatedActivities = state.activities.map((a) =>
-            a.id === id ? { ...a, status, dokumenChecklist: checklist } : a
-          );
+            const updatedActivities = state.activities.map((a) =>
+              a.id === id ? { ...a, status, dokumenChecklist: checklist } : a
+            );
 
-          return { activities: updatedActivities };
-        });
+            return { activities: updatedActivities };
+          });
+        } catch (error) {
+          console.error('Error updating activity:', error);
+          throw error;
+        }
       },
-      deleteActivity: (id) => {
-        set((state) => ({
-          activities: state.activities.filter((a) => a.id !== id),
-          // Optionally, we could also delete related notifications here if needed, 
-          // but keeping them might be fine or we can clean them up.
-          notifications: state.notifications.filter((n) => n.activityId !== id)
-        }));
+      deleteActivity: async (id) => {
+        try {
+          const { error } = await supabase
+            .from('activities')
+            .delete()
+            .eq('id', id);
+            
+          if (error) throw error;
+          
+          set((state) => ({
+            activities: state.activities.filter((a) => a.id !== id),
+            notifications: state.notifications.filter((n) => n.activityId !== id)
+          }));
+        } catch (error) {
+          console.error('Error deleting activity:', error);
+          throw error;
+        }
       },
       addNotification: (notifData) => {
         const newNotif: Notification = {
