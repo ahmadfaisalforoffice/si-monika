@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import GantiPassword from './pages/GantiPassword';
 import ProtectedRoute from './components/ProtectedRoute';
+import { useStore } from './store/useStore';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -26,6 +27,12 @@ import ChecklistPending from './pages/pic/ChecklistPending';
 import ChecklistComplete from './pages/pic/ChecklistComplete';
 
 export default function App() {
+  const { checkSession } = useStore();
+
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
+
   return (
     <BrowserRouter>
       <Routes>
