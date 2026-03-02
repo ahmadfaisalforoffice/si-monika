@@ -193,9 +193,14 @@ export const useStore = create<StoreState>()(
         const status = 'Diajukan';
         const dokumenChecklist = getInitialChecklist(activityData.tempatKegiatan);
 
-        // Find the user's UUID if createdBy is a username
-        const user = get().users.find(u => u.username === activityData.createdBy);
+        // Find the user's UUID if createdBy is a username or ID
+        const user = get().users.find(u => u.username === activityData.createdBy || u.id === activityData.createdBy);
         const createdByUuid = user?.id || activityData.createdBy;
+
+        // Final check: if it's still not a UUID (doesn't have hyphens), use a default or throw
+        if (typeof createdByUuid === 'string' && !createdByUuid.includes('-') && createdByUuid !== 'pic' && createdByUuid !== 'admin') {
+           console.warn('createdBy is not a UUID:', createdByUuid);
+        }
 
         const newActivity: Activity = {
           ...activityData,
@@ -221,7 +226,7 @@ export const useStore = create<StoreState>()(
           
           // Notify PIC
           get().addNotification({
-            userId: 'pic',
+            userId: '00000000-0000-0000-0000-000000000002',
             message: `Kegiatan baru diajukan: ${newActivity.judulKegiatan} oleh ${newActivity.subBagian}`,
             activityId: newActivity.id,
           });
@@ -291,7 +296,7 @@ export const useStore = create<StoreState>()(
         })),
     }),
     {
-      name: 'simonika-storage',
+      name: 'simonika-storage-v2',
     }
   )
 );
