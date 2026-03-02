@@ -37,7 +37,7 @@ export default function Layout() {
     }, 800);
   };
 
-  const userNotifications = notifications.filter(n => n.userId === currentUser.username);
+  const userNotifications = notifications.filter(n => n.userId === currentUser.id || n.userId === currentUser.username);
   const unreadCount = userNotifications.filter(n => !n.isRead).length;
 
   const handleNotificationClick = (notif: any) => {
