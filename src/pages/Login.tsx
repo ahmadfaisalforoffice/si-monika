@@ -5,33 +5,37 @@ import { Eye, EyeOff, Lock, User, ShieldCheck, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function Login() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const { users, login } = useStore();
+  const { login, currentUser } = useStore();
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
     
-    // Simulate network request for better UX
-    setTimeout(() => {
-      const user = users.find((u) => u.username === username && u.password === password);
-      if (user) {
-        login(user);
-        if (user.role === 'admin') navigate('/admin/dashboard');
-        else if (user.role === 'pic') navigate('/pic/dashboard');
-        else navigate('/user/dashboard');
-      } else {
-        setError('Username atau password salah');
-        setIsLoading(false);
-      }
-    }, 800);
+    try {
+      await login(email, password);
+      // The store update will trigger a re-render, but we need to navigate
+      // We'll use a useEffect or check the result
+    } catch (err: any) {
+      setError(err.message || 'Login gagal. Periksa kembali email dan password Anda.');
+      setIsLoading(false);
+    }
   };
+
+  // Handle navigation after login success
+  React.useEffect(() => {
+    if (currentUser) {
+      if (currentUser.role === 'admin') navigate('/admin/dashboard');
+      else if (currentUser.role === 'pic') navigate('/pic/dashboard');
+      else navigate('/user/dashboard');
+    }
+  }, [currentUser, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-slate-900">
@@ -122,15 +126,15 @@ export default function Login() {
                     <User className="h-5 w-5 text-slate-400" />
                   </div>
                   <input
-                    id="username"
-                    name="username"
-                    type="text"
+                    id="email"
+                    name="email"
+                    type="email"
                     required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}
                     className="block w-full pl-11 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all sm:text-sm disabled:opacity-50"
-                    placeholder="Username"
+                    placeholder="Email"
                   />
                 </div>
               </motion.div>
