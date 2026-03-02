@@ -10,7 +10,7 @@ export default function Monitoring() {
   const [dateFilter, setDateFilter] = useState('');
   const [selectedActivity, setSelectedActivity] = useState<any>(null);
 
-  const userActivities = activities.filter(a => a.createdBy === currentUser?.username);
+  const userActivities = activities.filter(a => a.createdBy === currentUser?.id || a.createdBy === currentUser?.username);
 
   const filteredActivities = userActivities.filter(a => {
     const matchStatus = statusFilter === 'Semua' || a.status === statusFilter;
