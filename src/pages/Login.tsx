@@ -84,7 +84,7 @@ export default function Login() {
                 transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
                 className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-lg p-2"
               >
-                <img src="https://i.postimg.cc/W3rRpwMp/si-monika-logo-Photoroom.png" alt="Logo Si-Monika" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                <img src="https://i.postimg.cc/W3rRpwMp/si-monika-logo-Photoroom.png" alt="Logo Si-Monika" className="w-full h-full object-contain" />
               </motion.div>
             </div>
             
