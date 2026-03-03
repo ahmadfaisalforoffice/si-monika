@@ -46,26 +46,39 @@ export default function Login() {
         <motion.div 
           animate={{ 
             rotate: 360,
-            scale: [1, 1.2, 1],
+            scale: [1, 1.3, 1],
           }}
           transition={{ 
-            duration: 20, 
+            duration: 15, 
             repeat: Infinity,
             ease: "linear" 
           }}
-          className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] rounded-full bg-blue-600/20 blur-[120px]"
+          className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] rounded-full bg-blue-500/40 blur-[90px]"
         />
         <motion.div 
           animate={{ 
             rotate: -360,
-            scale: [1, 1.5, 1],
+            scale: [1, 1.4, 1],
           }}
           transition={{ 
-            duration: 25, 
+            duration: 18, 
             repeat: Infinity,
             ease: "linear" 
           }}
-          className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-emerald-600/20 blur-[120px]"
+          className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] rounded-full bg-emerald-500/40 blur-[90px]"
+        />
+        <motion.div 
+          animate={{ 
+            y: [0, -50, 0],
+            x: [0, 50, 0],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{ 
+            duration: 12, 
+            repeat: Infinity,
+            ease: "easeInOut" 
+          }}
+          className="absolute top-[30%] left-[30%] w-[40%] h-[40%] rounded-full bg-indigo-500/30 blur-[90px]"
         />
       </div>
 
