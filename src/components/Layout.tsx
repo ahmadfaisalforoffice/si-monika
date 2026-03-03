@@ -118,7 +118,11 @@ export default function Layout() {
   const currentMenuItems = menuItems[currentUser.role];
 
   return (
-    <div className="min-h-screen bg-[#f4f7fe] flex">
+    <div className="min-h-screen bg-slate-50 flex relative overflow-x-hidden">
+      {/* Subtle decorative background for main content area */}
+      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-bl from-blue-200/40 via-indigo-100/20 to-transparent rounded-full blur-3xl pointer-events-none -translate-y-1/4 translate-x-1/4 z-0" />
+      <div className="absolute bottom-0 left-64 w-[600px] h-[600px] bg-gradient-to-tr from-emerald-100/30 via-teal-50/20 to-transparent rounded-full blur-3xl pointer-events-none translate-y-1/4 -translate-x-1/4 z-0" />
+      
       {/* Mobile overlay */}
       {isSidebarOpen && (
         <div 
@@ -325,7 +329,7 @@ export default function Layout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-4 sm:p-6 overflow-x-hidden w-full max-w-full">
+        <main className="flex-1 p-4 sm:p-6 overflow-x-hidden w-full max-w-full relative z-10">
           <Outlet />
         </main>
       </div>
