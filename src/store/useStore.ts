@@ -326,12 +326,21 @@ export const useStore = create<StoreState>()(
             activities: [newActivity, ...state.activities],
           }));
           
-          // Notify PIC (Hardcoded ID for PIC if needed, or broadcast)
-          await get().addNotification({
-            userId: 'pic-id', // This should ideally be dynamic or handled by server
-            message: `Kegiatan baru diajukan: ${newActivity.judulKegiatan} oleh ${newActivity.subBagian}`,
-            activityId: newActivity.id,
-          });
+          // Fetch PIC user to get their ID
+          const { data: picUser } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('role', 'pic')
+            .limit(1)
+            .single();
+
+          if (picUser) {
+            await get().addNotification({
+              userId: picUser.id,
+              message: `Kegiatan baru diajukan: ${newActivity.judulKegiatan} oleh ${newActivity.subBagian}`,
+              activityId: newActivity.id,
+            });
+          }
         } catch (error) {
           console.error('Error adding activity:', error);
           throw error;
