@@ -4,9 +4,10 @@ import { useStore } from '../store/useStore';
 import { LogOut, Menu, Bell, User, Key, FileText, CheckSquare, Home, Users, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { supabase } from '../lib/supabase';
 
 export default function Layout() {
-  const { currentUser, logout, notifications, markNotificationAsRead, fetchActivities } = useStore();
+  const { currentUser, logout, notifications, markNotificationAsRead, fetchActivities, fetchNotifications } = useStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -22,8 +23,46 @@ export default function Layout() {
   useEffect(() => {
     if (currentUser) {
       fetchActivities();
+      
+      // Subscribe to realtime notifications
+      const notifChannel = supabase
+        .channel('notifications-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${currentUser.id}`,
+          },
+          (payload) => {
+            fetchNotifications();
+          }
+        )
+        .subscribe();
+
+      // Subscribe to realtime activities
+      const activitiesChannel = supabase
+        .channel('activities-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'activities',
+          },
+          (payload) => {
+            fetchActivities();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(notifChannel);
+        supabase.removeChannel(activitiesChannel);
+      };
     }
-  }, [currentUser, fetchActivities]);
+  }, [currentUser, fetchActivities, fetchNotifications]);
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
