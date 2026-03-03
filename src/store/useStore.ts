@@ -275,7 +275,7 @@ export const useStore = create<StoreState>()(
           const { data, error } = await supabase
             .from('notifications')
             .select('*')
-            .or(`user_id.eq.${currentUser.id},user_id.eq.${currentUser.username}`)
+            .eq('user_id', currentUser.id)
             .order('created_at', { ascending: false });
 
           if (error) throw error;
@@ -326,20 +326,20 @@ export const useStore = create<StoreState>()(
             activities: [newActivity, ...state.activities],
           }));
           
-          // Fetch PIC user to get their ID
-          const { data: picUser } = await supabase
+          // Fetch PIC users to get their IDs
+          const { data: picUsers } = await supabase
             .from('profiles')
             .select('id')
-            .eq('role', 'pic')
-            .limit(1)
-            .single();
+            .eq('role', 'pic');
 
-          if (picUser) {
-            await get().addNotification({
-              userId: picUser.id,
-              message: `Kegiatan baru diajukan: ${newActivity.judulKegiatan} oleh ${newActivity.subBagian}`,
-              activityId: newActivity.id,
-            });
+          if (picUsers && picUsers.length > 0) {
+            for (const picUser of picUsers) {
+              await get().addNotification({
+                userId: picUser.id,
+                message: `Kegiatan baru diajukan: ${newActivity.judulKegiatan} oleh ${newActivity.subBagian}`,
+                activityId: newActivity.id,
+              });
+            }
           }
         } catch (error) {
           console.error('Error adding activity:', error);
@@ -365,6 +365,16 @@ export const useStore = create<StoreState>()(
 
             return { activities: updatedActivities };
           });
+
+          // Fetch the activity to get the creator's ID
+          const activity = get().activities.find(a => a.id === id);
+          if (activity && activity.createdBy) {
+            await get().addNotification({
+              userId: activity.createdBy,
+              message: `Status kegiatan "${activity.judulKegiatan}" telah diperbarui menjadi: ${status}`,
+              activityId: id,
+            });
+          }
         } catch (error) {
           console.error('Error updating activity:', error);
           throw error;
