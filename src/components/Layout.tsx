@@ -184,7 +184,7 @@ export default function Layout() {
           {isSidebarOpen ? (
             <>
               <div className="flex items-center justify-center space-x-3 mb-2">
-                <img src="https://i.postimg.cc/W3rRpwMp/si-monika-logo-Photoroom.png" alt="Logo Si-Monika" className="w-12 h-12 object-contain bg-white rounded-full p-1" />
+                <img src="https://i.postimg.cc/W3rRpwMp/si-monika-logo-Photoroom.png" alt="Logo Si-Monika" className="w-12 h-12 object-contain bg-white rounded-full p-1" referrerPolicy="no-referrer" />
                 <h1 className="text-2xl font-bold truncate">Si-Monika</h1>
               </div>
               <p className="text-[10px] leading-tight text-slate-300 font-medium max-w-[200px]">
@@ -196,7 +196,7 @@ export default function Layout() {
             </>
           ) : (
             <div className="hidden lg:flex items-center justify-center">
-              <img src="https://i.postimg.cc/W3rRpwMp/si-monika-logo-Photoroom.png" alt="Logo Si-Monika" className="w-10 h-10 object-contain bg-white rounded-full p-0.5" />
+              <img src="https://i.postimg.cc/W3rRpwMp/si-monika-logo-Photoroom.png" alt="Logo Si-Monika" className="w-10 h-10 object-contain bg-white rounded-full p-0.5" referrerPolicy="no-referrer" />
             </div>
           )}
         </div>
