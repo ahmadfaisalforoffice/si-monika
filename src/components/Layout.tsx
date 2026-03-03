@@ -5,6 +5,7 @@ import { LogOut, Menu, Bell, User, Key, FileText, CheckSquare, Home, Users, Load
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { supabase } from '../lib/supabase';
+import { motion } from 'motion/react';
 
 export default function Layout() {
   const { currentUser, logout, notifications, markNotificationAsRead, fetchActivities, fetchNotifications } = useStore();
@@ -129,11 +130,53 @@ export default function Layout() {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 z-30 h-full bg-slate-900 text-white transition-all duration-300 flex flex-col
+          fixed top-0 left-0 z-30 h-full bg-slate-900 text-white transition-all duration-300 flex flex-col overflow-hidden
           ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64 lg:translate-x-0 lg:w-20'}
         `}
       >
-        <div className="flex flex-col items-center justify-center border-b border-white/10 px-4 py-5 shrink-0 text-center min-h-[4rem]">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <motion.div 
+            animate={{ 
+              rotate: 360,
+              scale: [1, 1.3, 1],
+            }}
+            transition={{ 
+              duration: 15, 
+              repeat: Infinity,
+              ease: "linear" 
+            }}
+            className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] rounded-full bg-blue-500/40 blur-[90px]"
+          />
+          <motion.div 
+            animate={{ 
+              rotate: -360,
+              scale: [1, 1.4, 1],
+            }}
+            transition={{ 
+              duration: 18, 
+              repeat: Infinity,
+              ease: "linear" 
+            }}
+            className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] rounded-full bg-emerald-500/40 blur-[90px]"
+          />
+          <motion.div 
+            animate={{ 
+              y: [0, -50, 0],
+              x: [0, 50, 0],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{ 
+              duration: 12, 
+              repeat: Infinity,
+              ease: "easeInOut" 
+            }}
+            className="absolute top-[30%] left-[30%] w-[40%] h-[40%] rounded-full bg-indigo-500/30 blur-[90px]"
+          />
+        </div>
+
+        <div className="relative z-10 flex flex-col h-full w-full">
+          <div className="flex flex-col items-center justify-center border-b border-white/10 px-4 py-5 shrink-0 text-center min-h-[4rem]">
           {isSidebarOpen ? (
             <>
               <div className="flex items-center justify-center space-x-3 mb-2">
@@ -199,6 +242,7 @@ export default function Layout() {
               {isLoggingOut ? 'Keluar...' : 'Logout'}
             </span>
           </button>
+        </div>
         </div>
       </aside>
 
