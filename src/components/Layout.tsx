@@ -29,12 +29,10 @@ export default function Layout() {
     return <Navigate to="/login" replace />;
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsLoggingOut(true);
-    setTimeout(() => {
-      logout();
-      navigate('/login');
-    }, 800);
+    await logout();
+    navigate('/login', { replace: true });
   };
 
   const userNotifications = notifications.filter(n => n.userId === currentUser.id || n.userId === currentUser.username);
