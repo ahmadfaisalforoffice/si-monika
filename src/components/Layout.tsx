@@ -35,7 +35,7 @@ export default function Layout() {
     navigate('/login', { replace: true });
   };
 
-  const userNotifications = notifications.filter(n => n.userId === currentUser.id || n.userId === currentUser.username);
+  const userNotifications = notifications.filter(n => n.userId === currentUser.id);
   const unreadCount = userNotifications.filter(n => !n.isRead).length;
 
   const handleNotificationClick = async (notif: any) => {
