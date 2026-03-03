@@ -23,27 +23,30 @@ export default function Layout() {
   useEffect(() => {
     if (currentUser) {
       fetchActivities();
+      fetchNotifications();
       
       // Subscribe to realtime notifications
       const notifChannel = supabase
-        .channel('notifications-changes')
+        .channel('public:notifications')
         .on(
           'postgres_changes',
           {
-            event: 'INSERT',
+            event: '*',
             schema: 'public',
             table: 'notifications',
-            filter: `user_id=eq.${currentUser.id}`,
           },
           (payload) => {
+            console.log('Realtime notification received!', payload);
             fetchNotifications();
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('Notification channel status:', status);
+        });
 
       // Subscribe to realtime activities
       const activitiesChannel = supabase
-        .channel('activities-changes')
+        .channel('public:activities')
         .on(
           'postgres_changes',
           {
@@ -52,10 +55,13 @@ export default function Layout() {
             table: 'activities',
           },
           (payload) => {
+            console.log('Realtime activity received!', payload);
             fetchActivities();
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('Activities channel status:', status);
+        });
 
       return () => {
         supabase.removeChannel(notifChannel);
