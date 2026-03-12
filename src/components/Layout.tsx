@@ -126,7 +126,7 @@ export default function Layout() {
       {/* Mobile overlay */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/50 z-20 lg:hidden backdrop-blur-sm" 
+          className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-sm" 
           onClick={() => setIsSidebarOpen(false)} 
         />
       )}
@@ -134,7 +134,7 @@ export default function Layout() {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 z-30 h-full bg-slate-900 text-white transition-all duration-300 flex flex-col overflow-hidden
+          fixed top-0 left-0 z-50 h-full bg-slate-900 text-white transition-all duration-300 flex flex-col overflow-hidden
           ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64 lg:translate-x-0 lg:w-20'}
         `}
       >
@@ -253,7 +253,7 @@ export default function Layout() {
       {/* Main Content */}
       <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 w-full ${isSidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}`}>
         {/* Topbar */}
-        <header className="h-16 bg-white shadow-sm flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10 shrink-0">
+        <header className="h-16 bg-white/80 backdrop-blur-md shadow-sm flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30 shrink-0 border-b border-slate-100">
           <div className="flex items-center">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -268,7 +268,7 @@ export default function Layout() {
 
           <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Notifications */}
-            <div className="relative">
+            <div className={`relative ${showNotifications ? 'z-50' : 'z-10'}`}>
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="relative p-2 text-slate-500 hover:text-slate-700 focus:outline-none rounded-full hover:bg-slate-100 transition-colors"
@@ -316,7 +316,7 @@ export default function Layout() {
             </div>
 
             {/* User Profile */}
-            <div className="flex items-center space-x-2 sm:space-x-3 border-l border-slate-200 pl-2 sm:pl-4">
+            <div className="flex items-center space-x-2 sm:space-x-3 border-l border-slate-200 pl-2 sm:pl-4 relative z-0">
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs sm:text-sm">
                 {currentUser.nama_lengkap.charAt(0)}
               </div>
