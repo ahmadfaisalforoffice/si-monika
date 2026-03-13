@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
 
 export type Role = 'admin' | 'user' | 'pic';
@@ -452,6 +452,7 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'simonika-storage-v2',
+      storage: createJSONStorage(() => sessionStorage),
     }
   )
 );
